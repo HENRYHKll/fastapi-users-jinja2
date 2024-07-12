@@ -144,6 +144,6 @@ async def logout_post(
     user_token: Authenticator = Depends(get_current_user_token),
     strategy: Strategy = Depends(auth_backend.get_strategy),
 ):
-    print(user_token)
-    # user, token = user_token
-    # return await auth_backend.logout(strategy, user, token)
+    user_token
+    user, token = user_token
+    return await auth_backend.logout(strategy, user, token)
