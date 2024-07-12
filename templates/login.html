@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Sign In   <span class="text-danger">{{exceptions}}</span></h4> 
+                    </div>
+                    <div class="card-body">
+                        <form action="" method="POST">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Sign In</button>
+                            <a href="/register" class="btn btn-primary" role="button">Register</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+    <!-- Bootstrap JavaScript -->
+    <script>
+        console.log('Script loaded!');
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get('x-error');
+        if (error === 'Invalid credentials') {
+          console.log('Invalid credentials!');
+          alert('Invalid credentials! Redirecting to signin page');
+        }
+      </script>
+      
+</body>
+</html>

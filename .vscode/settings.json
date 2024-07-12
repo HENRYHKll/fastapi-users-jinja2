@@ -1,0 +1,14 @@
+{
+    
+	"[python]": {
+						// "diffEditor.ignoreTrimWhitespace": false,
+						// "editor.formatOnType": true,
+						// "editor.wordBasedSuggestions": "off",
+						"editor.formatOnSave": true,
+						"editor.defaultFormatter": "charliermarsh.ruff",
+						"editor.codeActionsOnSave": {
+							"source.fixAll": "explicit",
+							"source.organizeImports": "explicit"
+						}
+          },
+}
