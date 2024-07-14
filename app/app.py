@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, Form, Request, Response, status
+from fastapi.exceptions import HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
@@ -15,8 +16,8 @@ from app.users import (
     current_active_user,
     current_user,
     fastapi_users,
+    get_current_user_token,
     get_user_manager,
-    user_authenticator,
 )
 
 templates = Jinja2Templates(directory="templates")
@@ -30,6 +31,18 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+
+# 404 Redirect /
+@app.exception_handler(404)
+async def not_found_exception_handler(request: Request, exc: HTTPException):
+    return RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@app.exception_handler(401)
+async def unauthorized_exception_handler(request: Request, exc: HTTPException):
+    return RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
+
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
@@ -61,10 +74,21 @@ async def authenticated_route(user: User = Depends(current_active_user)):
     return {"message": f"Hello {user.email}!"}
 
 
-@app.get("/")
-async def index(request: Request, user: User = Depends(current_user)):
+async def auth_redirect(user: User = Depends(current_user)):
     if user is None:
-        return RedirectResponse("/my-login", status_code=status.HTTP_303_SEE_OTHER)
+        raise HTTPException(
+            status_code=302, detail="Not authorized", headers={"Location": "/my-login"}
+        )
+    return user
+
+def mixin_redirect(res: Response, path: str ='/'):
+    redirect = RedirectResponse(path, status_code=status.HTTP_303_SEE_OTHER)
+    redirect.raw_headers.extend(res.raw_headers)
+    return redirect
+
+
+@app.get("/")
+async def index(request: Request, user: User = Depends(auth_redirect)):
     return templates.TemplateResponse(name="index.html", request=request)
 
 
@@ -94,9 +118,9 @@ async def login_post(
     else:
         response = await auth_backend.login(strategy, user)
         await user_manager.on_after_login(user, request, response)
-        redicrct = RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
-        redicrct.raw_headers.extend(response.raw_headers)
-        return redicrct
+        # redicrct = RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
+        # redicrct.raw_headers.extend(response.raw_headers)
+        return mixin_redirect(res=response)
 
 
 @app.get("/register")
@@ -134,16 +158,11 @@ async def register_post(
     )
 
 
-def get_current_user_token():
-    user_token = user_authenticator.current_user_token(active=True, verified=False)
-    return user_token
-
-
 @app.post("/logout")
 async def logout_post(
     user_token: Authenticator = Depends(get_current_user_token),
     strategy: Strategy = Depends(auth_backend.get_strategy),
 ):
-    user_token
     user, token = user_token
-    return await auth_backend.logout(strategy, user, token)
+    response = await auth_backend.logout(strategy, user, token)
+    return mixin_redirect(res=response, path= 'my-login')
