@@ -118,8 +118,6 @@ async def login_post(
     else:
         response = await auth_backend.login(strategy, user)
         await user_manager.on_after_login(user, request, response)
-        # redicrct = RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
-        # redicrct.raw_headers.extend(response.raw_headers)
         return mixin_redirect(res=response)
 
 
